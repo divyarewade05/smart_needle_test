@@ -1,0 +1,1223 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smart Needle</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap"
+        rel="stylesheet" />
+    <style>
+        :root {
+            --bg: #0a0a0f;
+            --surface: #111118;
+            --surface2: #1a1a24;
+            --border: #2a2a3a;
+            --accent: #00e5ff;
+            --accent2: #7c3aed;
+            --success: #00c896;
+            --danger: #ff4560;
+            --warn: #f59e0b;
+            --text: #e8e8f0;
+            --muted: #6b6b80;
+            --mono: 'Space Mono', monospace;
+            --sans: 'DM Sans', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--sans);
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* ---- Sidebar ---- */
+        .sidebar {
+            width: 220px;
+            min-height: 100vh;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 28px 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            z-index: 10;
+        }
+
+        .logo {
+            padding: 0 24px 28px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 16px;
+        }
+
+        .logo-mark {
+            font-family: var(--mono);
+            font-size: 18px;
+            color: var(--accent);
+            letter-spacing: -0.5px;
+        }
+
+        .logo-sub {
+            font-size: 10px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-top: 4px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 11px 24px;
+            cursor: pointer;
+            color: var(--muted);
+            font-size: 13.5px;
+            font-weight: 500;
+            transition: all 0.15s;
+            border-left: 2px solid transparent;
+        }
+
+        .nav-item:hover {
+            color: var(--text);
+            background: var(--surface2);
+        }
+
+        .nav-item.active {
+            color: var(--accent);
+            border-left-color: var(--accent);
+            background: rgba(0, 229, 255, 0.05);
+        }
+
+        .nav-icon {
+            font-size: 16px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding: 16px 24px;
+            border-top: 1px solid var(--border);
+        }
+
+        .status-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.4;
+            }
+        }
+
+        .status-text {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        /* ---- Main ---- */
+        .main {
+            margin-left: 220px;
+            flex: 1;
+            padding: 36px 40px;
+            max-width: calc(100vw - 220px);
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .page-header {
+            margin-bottom: 32px;
+        }
+
+        .page-title {
+            font-family: var(--mono);
+            font-size: 22px;
+            color: var(--text);
+            letter-spacing: -0.5px;
+        }
+
+        .page-sub {
+            font-size: 13px;
+            color: var(--muted);
+            margin-top: 6px;
+        }
+
+        /* ---- Cards ---- */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 16px;
+        }
+
+        /* ---- Stats grid ---- */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--accent);
+        }
+
+        .stat-card:nth-child(2)::after {
+            background: var(--accent2);
+        }
+
+        .stat-card:nth-child(3)::after {
+            background: var(--success);
+        }
+
+        .stat-card:nth-child(4)::after {
+            background: var(--warn);
+        }
+
+        .stat-value {
+            font-family: var(--mono);
+            font-size: 32px;
+            color: var(--text);
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-top: 8px;
+        }
+
+        /* ---- Buttons ---- */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-family: var(--sans);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: all 0.15s;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #000;
+        }
+
+        .btn-primary:hover {
+            background: #33ecff;
+            transform: translateY(-1px);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+
+        .btn-ghost:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .btn-danger {
+            background: rgba(255, 69, 96, 0.12);
+            border: 1px solid rgba(255, 69, 96, 0.3);
+            color: var(--danger);
+        }
+
+        .btn-danger:hover {
+            background: rgba(255, 69, 96, 0.2);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: #000;
+        }
+
+        .btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* ---- Upload zone ---- */
+        .upload-zone {
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .upload-zone:hover,
+        .upload-zone.drag-over {
+            border-color: var(--accent);
+            background: rgba(0, 229, 255, 0.03);
+        }
+
+        .upload-zone input {
+            display: none;
+        }
+
+        .upload-icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .upload-text {
+            font-size: 14px;
+            color: var(--muted);
+        }
+
+        .upload-text span {
+            color: var(--accent);
+            cursor: pointer;
+        }
+
+        /* ---- Results ---- */
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 16px;
+        }
+
+        .result-card {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+            transition: border-color 0.2s;
+        }
+
+        .result-card:hover {
+            border-color: var(--accent);
+        }
+
+        .result-img {
+            width: 100%;
+            aspect-ratio: 4/3;
+            object-fit: cover;
+            display: block;
+            background: var(--surface);
+        }
+
+        .result-info {
+            padding: 12px 14px;
+        }
+
+        .result-name {
+            font-family: var(--mono);
+            font-size: 13px;
+            color: var(--text);
+        }
+
+        .result-meta {
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: 4px;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-family: var(--mono);
+        }
+
+        .badge-match {
+            background: rgba(0, 200, 150, 0.12);
+            color: var(--success);
+            border: 1px solid rgba(0, 200, 150, 0.25);
+        }
+
+        .badge-unknown {
+            background: rgba(255, 69, 96, 0.1);
+            color: var(--danger);
+            border: 1px solid rgba(255, 69, 96, 0.2);
+        }
+
+        .score-bar {
+            height: 3px;
+            background: var(--border);
+            border-radius: 2px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .score-fill {
+            height: 100%;
+            background: var(--success);
+            border-radius: 2px;
+            transition: width 0.6s ease;
+        }
+
+        /* ---- Face table ---- */
+        .face-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .face-table th {
+            text-align: left;
+            padding: 10px 14px;
+            font-size: 11px;
+            font-family: var(--mono);
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .face-table td {
+            padding: 12px 14px;
+            font-size: 13px;
+            border-bottom: 1px solid rgba(42, 42, 58, 0.5);
+            vertical-align: middle;
+        }
+
+        .face-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .face-table tr:hover td {
+            background: var(--surface2);
+        }
+
+        /* ---- Identity list ---- */
+        .identity-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(42, 42, 58, 0.5);
+        }
+
+        .identity-row:last-child {
+            border-bottom: none;
+        }
+
+        .identity-name {
+            font-family: var(--mono);
+            font-size: 14px;
+            color: var(--text);
+        }
+
+        .identity-meta {
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: 3px;
+        }
+
+        /* ---- Log output ---- */
+        .log-box {
+            background: #080810;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            font-family: var(--mono);
+            font-size: 12px;
+            color: var(--muted);
+            max-height: 220px;
+            overflow-y: auto;
+            line-height: 1.8;
+        }
+
+        .log-line {
+            display: block;
+        }
+
+        .log-line.ok {
+            color: var(--success);
+        }
+
+        .log-line.warn {
+            color: var(--warn);
+        }
+
+        .log-line.err {
+            color: var(--danger);
+        }
+
+        .log-line.info {
+            color: var(--accent);
+        }
+
+        /* ---- Search input ---- */
+        .search-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .input {
+            flex: 1;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 16px;
+            color: var(--text);
+            font-family: var(--sans);
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+
+        .input:focus {
+            border-color: var(--accent);
+        }
+
+        .input::placeholder {
+            color: var(--muted);
+        }
+
+        /* ---- Threshold slider ---- */
+        .slider-row {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .slider-label {
+            font-size: 13px;
+            color: var(--muted);
+            white-space: nowrap;
+        }
+
+        input[type=range] {
+            -webkit-appearance: none;
+            appearance: none;
+            flex: 1;
+            height: 3px;
+            background: var(--border);
+            border-radius: 2px;
+            outline: none;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        input[type=range]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        .slider-val {
+            font-family: var(--mono);
+            font-size: 14px;
+            color: var(--accent);
+            width: 36px;
+            text-align: right;
+        }
+
+        /* ---- Loading spinner ---- */
+        .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* ---- Preview image ---- */
+        .preview-wrap {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 16px;
+        }
+
+        .preview-img {
+            max-width: 100%;
+            max-height: 320px;
+            border-radius: 8px;
+            display: block;
+        }
+
+        /* ---- Toast ---- */
+        #toast {
+            position: fixed;
+            bottom: 28px;
+            right: 28px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px 20px;
+            font-size: 13px;
+            color: var(--text);
+            z-index: 999;
+            opacity: 0;
+            transform: translateY(12px);
+            transition: all 0.25s;
+            pointer-events: none;
+            max-width: 320px;
+        }
+
+        #toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        #toast.success {
+            border-left: 3px solid var(--success);
+        }
+
+        #toast.error {
+            border-left: 3px solid var(--danger);
+        }
+
+        #toast.info {
+            border-left: 3px solid var(--accent);
+        }
+
+        /* ---- Two column layout ---- */
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 1100px) {
+            .two-col {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ===== SIDEBAR ===== -->
+    <aside class="sidebar">
+        <div class="logo">
+            <div class="logo-mark">Smart Needle</div>
+            <div class="logo-sub">Face Recognition Engine</div>
+        </div>
+
+        <nav>
+            <div class="nav-item active" onclick="navigate('dashboard')">
+                <span class="nav-icon">⬡</span> Dashboard
+            </div>
+            <div class="nav-item" onclick="navigate('identities')">
+                <span class="nav-icon">◈</span> Identities
+            </div>
+            <div class="nav-item" onclick="navigate('recognize')">
+                <span class="nav-icon">◎</span> Recognize
+            </div>
+            <div class="nav-item" onclick="navigate('search')">
+                <span class="nav-icon">⌖</span> Search
+            </div>
+        </nav>
+
+        <div class="sidebar-footer">
+            <span class="status-dot"></span>
+            <span class="status-text" id="model-status">Loading model...</span>
+        </div>
+    </aside>
+
+    <!-- ===== MAIN ===== -->
+    <main class="main">
+
+        <!-- =================== DASHBOARD =================== -->
+        <section class="page active" id="page-dashboard">
+            <div class="page-header">
+                <div class="page-title">Dashboard</div>
+                <div class="page-sub">System overview and quick actions</div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-identities">—</div>
+                    <div class="stat-label">Identities</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-threshold">0.45</div>
+                    <div class="stat-label">Threshold</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-model">buffalo_l</div>
+                    <div class="stat-label">Model</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-api">—</div>
+                    <div class="stat-label">API Status</div>
+                </div>
+            </div>
+
+            <div class="two-col">
+                <div class="card">
+                    <div class="card-title">Rebuild Embeddings</div>
+                    <p style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.6">
+                        Scans your reference folder and only recomputes embeddings for identities
+                        that have changed. Added, removed, or modified folders are automatically detected.
+                    </p>
+                    <div style="display:flex;gap:10px;flex-wrap:wrap">
+                        <button class="btn btn-primary" id="btn-rebuild-smart" onclick="rebuildEmbeddings(false)">
+                            ⚡ Smart Rebuild
+                        </button>
+                        <button class="btn btn-ghost" onclick="rebuildEmbeddings(true)">
+                            ↺ Force Full Rebuild
+                        </button>
+                    </div>
+                    <div id="rebuild-log" class="log-box" style="margin-top:16px;display:none"></div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">Similarity Threshold</div>
+                    <p style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.6">
+                        Controls how strict the matching is. Higher values reduce false positives.
+                        Recommended range for buffalo_l: <strong style="color:var(--accent)">0.35 – 0.55</strong>
+                    </p>
+                    <div class="slider-row">
+                        <span class="slider-label">Threshold</span>
+                        <input type="range" id="threshold-slider" min="0.2" max="0.8" step="0.01" value="0.45"
+                            oninput="updateThreshold(this.value)" />
+                        <span class="slider-val" id="threshold-display">0.45</span>
+                    </div>
+                    <p style="font-size:11px;color:var(--muted)">
+                        Changes apply to all subsequent recognition and search operations.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- =================== IDENTITIES =================== -->
+        <section class="page" id="page-identities">
+            <div class="page-header">
+                <div class="page-title">Identities</div>
+                <div class="page-sub">Stored reference embeddings — mean face vectors per person</div>
+            </div>
+
+            <div class="card">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+                    <div class="card-title" style="margin-bottom:0">Registered Identities</div>
+                    <button class="btn btn-primary" onclick="loadIdentities()">↺ Refresh</button>
+                </div>
+                <div id="identity-list">
+                    <div style="color:var(--muted);font-size:13px">Loading...</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- =================== RECOGNIZE =================== -->
+        <section class="page" id="page-recognize">
+            <div class="page-header">
+                <div class="page-title">Recognize</div>
+                <div class="page-sub">Upload any image — multi-face, noisy, complex scenes supported</div>
+            </div>
+
+            <div class="two-col">
+                <div class="card">
+                    <div class="card-title">Upload Image</div>
+
+                    <div class="upload-zone" id="recognize-drop"
+                        onclick="document.getElementById('recognize-input').click()"
+                        ondragover="handleDragOver(event, this)" ondragleave="handleDragLeave(event, this)"
+                        ondrop="handleDrop(event, 'recognize')">
+                        <input type="file" id="recognize-input" accept="image/*"
+                            onchange="handleFileSelect(event, 'recognize')" />
+                        <span class="upload-icon">📷</span>
+                        <div class="upload-text">Drag & drop or <span>browse</span> to upload</div>
+                        <div class="upload-text" style="margin-top:4px;font-size:11px">JPG, PNG, WEBP</div>
+                    </div>
+
+                    <div id="recognize-preview" style="display:none;margin-top:16px">
+                        <img id="recognize-preview-img" class="preview-img" />
+                    </div>
+
+                    <div style="margin-top:16px;display:flex;gap:10px">
+                        <button class="btn btn-primary" id="btn-recognize" onclick="runRecognize()" disabled>
+                            ◎ Recognize Faces
+                        </button>
+                        <button class="btn btn-ghost" onclick="clearRecognize()">✕ Clear</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">Results</div>
+                    <div id="recognize-results">
+                        <div style="color:var(--muted);font-size:13px">Upload an image to begin recognition.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" id="recognize-annotated-card" style="display:none">
+                <div class="card-title">Annotated Output</div>
+                <img id="recognize-annotated-img" style="max-width:100%;border-radius:8px" />
+            </div>
+        </section>
+
+        <!-- =================== SEARCH =================== -->
+        <section class="page" id="page-search">
+            <div class="page-header">
+                <div class="page-title">Search</div>
+                <div class="page-sub">Find all images where a specific person appears</div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Search by Identity</div>
+                <div class="search-row">
+                    <input class="input" id="search-input" placeholder="Enter person name or ID..."
+                        onkeydown="if(event.key==='Enter') runSearch()" />
+                    <button class="btn btn-primary" onclick="runSearch()">⌖ Search</button>
+                </div>
+
+                <div style="margin-bottom:16px">
+                    <div class="card-title" style="margin-bottom:8px">Available Identities</div>
+                    <div id="search-identity-chips" style="display:flex;flex-wrap:wrap;gap:8px">
+                        <span style="color:var(--muted);font-size:12px">Loading...</span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="search-results" style="display:none">
+                <div class="card">
+                    <div class="card-title">Search Results</div>
+                    <div id="search-summary" style="margin-bottom:16px"></div>
+                    <div class="results-grid" id="search-results-grid"></div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Toast -->
+    <div id="toast"></div>
+
+    <script>
+        const API = 'http://localhost:8000/api';
+
+        let currentFile = null;
+        let currentThreshold = 0.45;
+
+        // ===================== NAVIGATION =====================
+        function navigate(page) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById('page-' + page).classList.add('active');
+            event.currentTarget.classList.add('active');
+
+            if (page === 'identities') loadIdentities();
+            if (page === 'search') loadSearchIdentities();
+        }
+
+        // ===================== HEALTH CHECK =====================
+        async function checkHealth() {
+            try {
+                const r = await fetch(`${API}/health`);
+                const d = await r.json();
+                document.getElementById('model-status').textContent = 'Model ready';
+                document.getElementById('stat-identities').textContent = d.total_identities;
+                document.getElementById('stat-api').textContent = 'Online';
+            } catch {
+                document.getElementById('model-status').textContent = 'API offline';
+                document.getElementById('stat-api').textContent = 'Offline';
+            }
+        }
+
+        // ===================== THRESHOLD =====================
+        function updateThreshold(val) {
+            currentThreshold = parseFloat(val);
+            document.getElementById('threshold-display').textContent = val;
+            document.getElementById('stat-threshold').textContent = val;
+            toast(`Threshold set to ${val}`, 'info');
+        }
+
+        // ===================== REBUILD =====================
+        async function rebuildEmbeddings(force) {
+            const logBox = document.getElementById('rebuild-log');
+            logBox.style.display = 'block';
+            logBox.innerHTML = '';
+
+            const btn = document.getElementById('btn-rebuild-smart');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span> Rebuilding...';
+
+            log(logBox, `Starting ${force ? 'FULL' : 'smart'} rebuild...`, 'info');
+
+            try {
+                const r = await fetch(`${API}/embeddings/rebuild?force=${force}`, { method: 'POST' });
+                const d = await r.json();
+
+                d.log.forEach(entry => {
+                    const e = entry.event;
+                    const p = entry.data;
+                    if (e === 'scan_complete') {
+                        log(logBox, `Scan: +${p.added} added, ~${p.modified} modified, -${p.removed} removed, ✓${p.clean} clean`, 'info');
+                    } else if (e === 'identity_done') {
+                        log(logBox, `✓ ${p.name} (${p.samples} samples)`, 'ok');
+                        if (p.warnings?.length) p.warnings.forEach(w => log(logBox, `  ⚠ ${w}`, 'warn'));
+                    } else if (e === 'identity_removed') {
+                        log(logBox, `✕ Removed: ${p.name}`, 'warn');
+                    } else if (e === 'identity_failed') {
+                        log(logBox, `✗ ${p.name}: ${p.reason}`, 'err');
+                    } else if (e === 'build_complete') {
+                        log(logBox, `\nDone. ${p.processed} processed, ${p.removed} removed, ${p.skipped} skipped. Total: ${p.total}`, 'ok');
+                    }
+                });
+
+                await checkHealth();
+                toast('Rebuild complete!', 'success');
+            } catch (err) {
+                log(logBox, `Error: ${err.message}`, 'err');
+                toast('Rebuild failed. Is the API running?', 'error');
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = '⚡ Smart Rebuild';
+        }
+
+        function log(box, msg, cls = '') {
+            const line = document.createElement('span');
+            line.className = 'log-line ' + cls;
+            line.textContent = msg;
+            box.appendChild(line);
+            box.appendChild(document.createElement('br'));
+            box.scrollTop = box.scrollHeight;
+        }
+
+        // ===================== IDENTITIES =====================
+        async function loadIdentities() {
+            const list = document.getElementById('identity-list');
+            list.innerHTML = '<div style="color:var(--muted);font-size:13px">Loading...</div>';
+
+            try {
+                const r = await fetch(`${API}/embeddings`);
+                const d = await r.json();
+
+                if (!d.identities.length) {
+                    list.innerHTML = '<div style="color:var(--muted);font-size:13px">No identities stored. Run a rebuild first.</div>';
+                    return;
+                }
+
+                list.innerHTML = d.identities.map(i => `
+        <div class="identity-row">
+          <div>
+            <div class="identity-name">${i.name}</div>
+            <div class="identity-meta">${i.sample_count} sample${i.sample_count !== 1 ? 's' : ''} · Updated ${formatDate(i.updated_at)}</div>
+          </div>
+          <button class="btn btn-danger" style="padding:6px 12px;font-size:11px" onclick="deleteIdentity('${i.name}')">Delete</button>
+        </div>
+      `).join('');
+            } catch {
+                list.innerHTML = '<div style="color:var(--danger);font-size:13px">Could not reach API.</div>';
+            }
+        }
+
+        async function deleteIdentity(name) {
+            if (!confirm(`Delete "${name}" from the store? This cannot be undone.`)) return;
+            try {
+                await fetch(`${API}/embeddings/${encodeURIComponent(name)}`, { method: 'DELETE' });
+                toast(`Deleted: ${name}`, 'success');
+                loadIdentities();
+                checkHealth();
+            } catch {
+                toast('Delete failed.', 'error');
+            }
+        }
+
+        // ===================== RECOGNIZE =====================
+        function handleDragOver(e, el) { e.preventDefault(); el.classList.add('drag-over'); }
+        function handleDragLeave(e, el) { el.classList.remove('drag-over'); }
+        function handleDrop(e, mode) {
+            e.preventDefault();
+            document.getElementById(`${mode}-drop`).classList.remove('drag-over');
+            const file = e.dataTransfer.files[0];
+            if (file) setFile(file, mode);
+        }
+        function handleFileSelect(e, mode) {
+            const file = e.target.files[0];
+            if (file) setFile(file, mode);
+        }
+
+        function setFile(file, mode) {
+            currentFile = file;
+            const reader = new FileReader();
+            reader.onload = ev => {
+                const preview = document.getElementById(`${mode}-preview`);
+                const img = document.getElementById(`${mode}-preview-img`);
+                img.src = ev.target.result;
+                preview.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+            document.getElementById(`btn-${mode}`).disabled = false;
+        }
+
+        function clearRecognize() {
+            currentFile = null;
+            document.getElementById('recognize-preview').style.display = 'none';
+            document.getElementById('recognize-results').innerHTML = '<div style="color:var(--muted);font-size:13px">Upload an image to begin recognition.</div>';
+            document.getElementById('recognize-annotated-card').style.display = 'none';
+            document.getElementById('btn-recognize').disabled = true;
+            document.getElementById('recognize-input').value = '';
+        }
+
+        async function runRecognize() {
+            if (!currentFile) return;
+
+            const btn = document.getElementById('btn-recognize');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span> Analyzing...';
+
+            const resultsDiv = document.getElementById('recognize-results');
+            resultsDiv.innerHTML = '<div style="color:var(--muted);font-size:13px">Processing...</div>';
+
+            const formData = new FormData();
+            formData.append('file', currentFile);
+
+            try {
+                const r = await fetch(`${API}/recognize/image`, { method: 'POST', body: formData });
+                const d = await r.json();
+
+                if (d.faces_detected === 0) {
+                    resultsDiv.innerHTML = '<div style="color:var(--muted);font-size:13px">No faces detected in this image.</div>';
+                    return;
+                }
+
+                resultsDiv.innerHTML = `
+        <div style="margin-bottom:16px;font-size:13px;color:var(--muted)">
+          ${d.faces_detected} face${d.faces_detected !== 1 ? 's' : ''} detected
+        </div>
+        <table class="face-table">
+          <thead>
+            <tr>
+              <th>#</th><th>Identity</th><th>Similarity</th><th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${d.recognized.map((f, i) => `
+              <tr>
+                <td style="color:var(--muted);font-family:var(--mono)">${i + 1}</td>
+                <td style="font-family:var(--mono)">${f.name}</td>
+                <td>
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <div class="score-bar" style="flex:1;max-width:80px">
+                      <div class="score-fill" style="width:${Math.round(f.score * 100)}%;background:${f.matched ? 'var(--success)' : 'var(--danger)'}"></div>
+                    </div>
+                    <span style="font-family:var(--mono);font-size:12px">${f.score.toFixed(3)}</span>
+                  </div>
+                </td>
+                <td>
+                  <span class="badge ${f.matched ? 'badge-match' : 'badge-unknown'}">
+                    ${f.matched ? '✓ Matched' : '? Unknown'}
+                  </span>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+
+                if (d.annotated_path) {
+                    const card = document.getElementById('recognize-annotated-card');
+                    const img = document.getElementById('recognize-annotated-img');
+                    img.src = `http://localhost:8000/output/${d.annotated_path.split('/output/').pop()}`;
+                    card.style.display = 'block';
+                }
+
+            } catch (err) {
+                resultsDiv.innerHTML = `<div style="color:var(--danger);font-size:13px">Error: ${err.message}</div>`;
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = '◎ Recognize Faces';
+        }
+
+        // ===================== SEARCH =====================
+        async function loadSearchIdentities() {
+            const chips = document.getElementById('search-identity-chips');
+            try {
+                const r = await fetch(`${API}/search/identities`);
+                const d = await r.json();
+                chips.innerHTML = d.identities.map(name => `
+        <span onclick="document.getElementById('search-input').value='${name}'"
+          style="padding:5px 12px;background:var(--surface2);border:1px solid var(--border);
+            border-radius:20px;font-size:12px;cursor:pointer;font-family:var(--mono);
+            transition:all 0.15s"
+          onmouseover="this.style.borderColor='var(--accent)'"
+          onmouseout="this.style.borderColor='var(--border)'">
+          ${name}
+        </span>
+      `).join('') || '<span style="color:var(--muted);font-size:12px">No identities found</span>';
+            } catch {
+                chips.innerHTML = '<span style="color:var(--danger);font-size:12px">Could not load identities</span>';
+            }
+        }
+
+        async function runSearch() {
+            const name = document.getElementById('search-input').value.trim();
+            if (!name) { toast('Enter a name to search', 'error'); return; }
+
+            const resultsSection = document.getElementById('search-results');
+            const summary = document.getElementById('search-summary');
+            const grid = document.getElementById('search-results-grid');
+
+            summary.innerHTML = '<div style="color:var(--muted);font-size:13px"><span class="spinner"></span> Searching...</div>';
+            grid.innerHTML = '';
+            resultsSection.style.display = 'block';
+
+            try {
+                const r = await fetch(`${API}/search/person`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, save_annotated: true }),
+                });
+                const d = await r.json();
+
+                if (d.error) {
+                    summary.innerHTML = `<div style="color:var(--danger);font-size:13px">${d.error}</div>`;
+                    return;
+                }
+
+                const total = d.matched_images.length;
+                summary.innerHTML = `
+        <div style="font-size:13px;color:var(--muted)">
+          Found <strong style="color:var(--text)">${total}</strong> image${total !== 1 ? 's' : ''}
+          containing <strong style="color:var(--accent)">${d.query}</strong>
+          · scanned <strong style="color:var(--text)">${d.total_images_scanned}</strong> total
+          · <strong style="color:var(--text)">${d.total_matches}</strong> face match${d.total_matches !== 1 ? 'es' : ''}
+        </div>
+      `;
+
+                if (!total) {
+                    grid.innerHTML = '<div style="color:var(--muted);font-size:13px">No matches found.</div>';
+                    return;
+                }
+
+                grid.innerHTML = d.matched_images.map(img => {
+                    const best = img.matched_faces[0];
+                    const imgSrc = img.annotated_path
+                        ? `http://localhost:8000/output/search/${name.replace(' ', '_')}/match_${img.image_name}`
+                        : '';
+
+                    return `
+          <div class="result-card">
+            ${imgSrc ? `<img class="result-img" src="${imgSrc}" alt="${img.image_name}" onerror="this.style.display='none'" />` : ''}
+            <div class="result-info">
+              <div class="result-name">${img.image_name}</div>
+              <div class="result-meta">
+                ${img.faces_in_image} face${img.faces_in_image !== 1 ? 's' : ''} in image
+                · ${img.matched_faces.length} match${img.matched_faces.length !== 1 ? 'es' : ''}
+              </div>
+              <div style="margin-top:8px">
+                <span class="badge badge-match">✓ ${best.score.toFixed(3)}</span>
+              </div>
+            </div>
+          </div>
+        `;
+                }).join('');
+
+            } catch (err) {
+                summary.innerHTML = `<div style="color:var(--danger);font-size:13px">Search failed: ${err.message}</div>`;
+            }
+        }
+
+        // ===================== UTILS =====================
+        function formatDate(ts) {
+            if (!ts) return 'unknown';
+            return new Date(ts * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+        }
+
+        let toastTimer;
+        function toast(msg, type = 'info') {
+            const el = document.getElementById('toast');
+            el.textContent = msg;
+            el.className = `show ${type}`;
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => { el.className = ''; }, 3000);
+        }
+
+        // ===================== INIT =====================
+        checkHealth();
+        setInterval(checkHealth, 30000);
+    </script>
+</body>
+
+</html>

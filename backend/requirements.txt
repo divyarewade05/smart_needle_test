@@ -1,0 +1,18 @@
+# Smart Needle — Backend Requirements
+
+# Core ML
+insightface==0.7.3
+onnxruntime==1.16.3          # CPU inference (swap for onnxruntime-gpu if CUDA)
+opencv-python==4.9.0.80
+numpy==1.26.4
+
+# API
+fastapi==0.111.0
+uvicorn[standard]==0.29.0
+python-multipart==0.0.9      # for file uploads
+
+# Config
+pydantic-settings==2.2.1
+
+# Utils
+Pillow==10.3.0
