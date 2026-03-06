@@ -87,6 +87,7 @@ class EmbeddingStore:
         return {"embeddings": {}, "root_hash": {}}
 
     def save(self):
+        os.makedirs(os.path.dirname(self.store_path), exist_ok=True)
         with open(self.store_path, "wb") as f:
             pickle.dump(self._data, f)
 
