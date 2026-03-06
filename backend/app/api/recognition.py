@@ -46,6 +46,12 @@ async def recognize_image(file: UploadFile = File(...)):
             detail="No reference embeddings found. Run /embeddings/rebuild first."
         )
 
+    # 0. Save original file to persistent storage (so feedback system can crop it)
+    os.makedirs(settings.test_images_path, exist_ok=True)
+    orig_save_path = os.path.join(settings.test_images_path, file.filename)
+    with open(orig_save_path, "wb") as f:
+        f.write(contents)
+
     # Detect all faces
     detected_faces = engine.detect_all_faces(img)
 
@@ -80,8 +86,11 @@ async def recognize_image(file: UploadFile = File(...)):
             "matched": match["matched"],
         })
 
-    # Save annotated output
     os.makedirs(settings.output_path, exist_ok=True)
+    # Also ensure reference and test paths exist in the new storage
+    os.makedirs(settings.reference_path, exist_ok=True)
+    os.makedirs(settings.test_images_path, exist_ok=True)
+    
     annotated = engine.annotate_image(img, annotations)
     output_filename = f"recognized_{file.filename}"
     output_path = os.path.join(settings.output_path, output_filename)
@@ -91,7 +100,7 @@ async def recognize_image(file: UploadFile = File(...)):
         "filename": file.filename,
         "faces_detected": len(detected_faces),
         "recognized": recognized,
-        "annotated_path": output_path,
+        "annotated_path": output_filename,
     }
 
 
@@ -165,14 +174,15 @@ def recognize_folder(folder_path: str = None):
             })
 
         annotated = engine.annotate_image(img, annotations)
-        out_path = os.path.join(settings.output_path, f"recognized_{img_path.name}")
+        out_filename = f"recognized_{img_path.name}"
+        out_path = os.path.join(settings.output_path, out_filename)
         cv2.imwrite(out_path, annotated)
 
         results.append({
             "image": img_path.name,
             "faces_detected": len(detected_faces),
             "recognized": recognized,
-            "annotated_path": out_path,
+            "annotated_path": out_filename,
         })
 
     return {
@@ -180,3 +190,5 @@ def recognize_folder(folder_path: str = None):
         "total_images": len(results),
         "results": results,
     }
+
+

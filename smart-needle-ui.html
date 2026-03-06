@@ -694,6 +694,13 @@
             <div class="nav-item" onclick="navigate('search')">
                 <span class="nav-icon">⌖</span> Search
             </div>
+            <div style="border-top:1px solid var(--border); margin:12px 0"></div>
+            <div class="nav-item" onclick="window.location.href='/teacher'">
+                <span class="nav-icon">📊</span> Teacher Portal
+            </div>
+            <div class="nav-item" onclick="window.location.href='/rewards'">
+                <span class="nav-icon">🏆</span> Rewards Hub
+            </div>
         </nav>
 
         <div class="sidebar-footer">
@@ -881,11 +888,43 @@
         function navigate(page) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            document.getElementById('page-' + page).classList.add('active');
-            event.currentTarget.classList.add('active');
+            const target = document.getElementById('page-' + page);
+            if (target) target.classList.add('active');
+
+            // Highlight nav item by finding its text
+            document.querySelectorAll('.nav-item').forEach(item => {
+                if (item.getAttribute('onclick')?.includes(`'${page}'`)) item.classList.add('active');
+            });
+
+            localStorage.setItem('last_active_page', page);
 
             if (page === 'identities') loadIdentities();
             if (page === 'search') loadSearchIdentities();
+        }
+
+        function restorePage() {
+            const page = localStorage.getItem('last_active_page') || 'dashboard';
+            navigate(page);
+
+            // Restore last results if we were on Recognize page
+            if (page === 'recognize') {
+                const dStr = localStorage.getItem('last_recognize_results');
+                if (dStr) {
+                    try {
+                        const d = JSON.parse(dStr);
+                        renderRecognizeResults(d);
+
+                        // Also restore preview image
+                        const previewStr = localStorage.getItem('last_recognize_preview');
+                        if (previewStr) {
+                            document.getElementById('recognize-preview-img').src = previewStr;
+                            document.getElementById('recognize-preview').style.display = 'block';
+                        }
+                    } catch (e) {
+                        console.error("Failed to restore results", e);
+                    }
+                }
+            }
         }
 
         // ===================== HEALTH CHECK =====================
@@ -1025,6 +1064,10 @@
                 const img = document.getElementById(`${mode}-preview-img`);
                 img.src = ev.target.result;
                 preview.style.display = 'block';
+
+                if (mode === 'recognize') {
+                    localStorage.setItem('last_recognize_preview', ev.target.result);
+                }
             };
             reader.readAsDataURL(file);
             document.getElementById(`btn-${mode}`).disabled = false;
@@ -1032,6 +1075,8 @@
 
         function clearRecognize() {
             currentFile = null;
+            localStorage.removeItem('last_recognize_results');
+            localStorage.removeItem('last_recognize_preview');
             document.getElementById('recognize-preview').style.display = 'none';
             document.getElementById('recognize-results').innerHTML = '<div style="color:var(--muted);font-size:13px">Upload an image to begin recognition.</div>';
             document.getElementById('recognize-annotated-card').style.display = 'none';
@@ -1056,51 +1101,11 @@
                 const r = await fetch(`${API}/recognize/image`, { method: 'POST', body: formData });
                 const d = await r.json();
 
-                if (d.faces_detected === 0) {
-                    resultsDiv.innerHTML = '<div style="color:var(--muted);font-size:13px">No faces detected in this image.</div>';
-                    return;
-                }
+                if (d.error || d.detail) throw new Error(d.error || d.detail);
 
-                resultsDiv.innerHTML = `
-        <div style="margin-bottom:16px;font-size:13px;color:var(--muted)">
-          ${d.faces_detected} face${d.faces_detected !== 1 ? 's' : ''} detected
-        </div>
-        <table class="face-table">
-          <thead>
-            <tr>
-              <th>#</th><th>Identity</th><th>Similarity</th><th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${d.recognized.map((f, i) => `
-              <tr>
-                <td style="color:var(--muted);font-family:var(--mono)">${i + 1}</td>
-                <td style="font-family:var(--mono)">${f.name}</td>
-                <td>
-                  <div style="display:flex;align-items:center;gap:8px">
-                    <div class="score-bar" style="flex:1;max-width:80px">
-                      <div class="score-fill" style="width:${Math.round(f.score * 100)}%;background:${f.matched ? 'var(--success)' : 'var(--danger)'}"></div>
-                    </div>
-                    <span style="font-family:var(--mono);font-size:12px">${f.score.toFixed(3)}</span>
-                  </div>
-                </td>
-                <td>
-                  <span class="badge ${f.matched ? 'badge-match' : 'badge-unknown'}">
-                    ${f.matched ? '✓ Matched' : '? Unknown'}
-                  </span>
-                </td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      `;
-
-                if (d.annotated_path) {
-                    const card = document.getElementById('recognize-annotated-card');
-                    const img = document.getElementById('recognize-annotated-img');
-                    img.src = `http://localhost:8000/output/${d.annotated_path.split('/output/').pop()}`;
-                    card.style.display = 'block';
-                }
+                // Save data for persistence
+                localStorage.setItem('last_recognize_results', JSON.stringify(d));
+                renderRecognizeResults(d);
 
             } catch (err) {
                 resultsDiv.innerHTML = `<div style="color:var(--danger);font-size:13px">Error: ${err.message}</div>`;
@@ -1109,6 +1114,55 @@
             btn.disabled = false;
             btn.innerHTML = '◎ Recognize Faces';
         }
+
+        function renderRecognizeResults(d) {
+            const resultsDiv = document.getElementById('recognize-results');
+            if (d.faces_detected === 0) {
+                resultsDiv.innerHTML = '<div style="color:var(--muted);font-size:13px">No faces detected in this image.</div>';
+                return;
+            }
+
+            resultsDiv.innerHTML = `
+                <div style="margin-bottom:16px;font-size:13px;color:var(--muted)">
+                  ${d.faces_detected} face${d.faces_detected !== 1 ? 's' : ''} detected
+                </div>
+                <table class="face-table">
+                  <thead>
+                    <tr><th>#</th><th>Identity</th><th>Similarity</th><th>Status</th></tr>
+                  </thead>
+                  <tbody>
+                    ${d.recognized.map((f, i) => `
+                        <tr>
+                            <td style="color:var(--muted);font-family:var(--mono)">${i + 1}</td>
+                            <td style="font-family:var(--mono)">${f.name}</td>
+                            <td>
+                                <div style="display:flex;align-items:center;gap:8px">
+                                    <div class="score-bar" style="flex:1;max-width:80px">
+                                        <div class="score-fill" style="width:${Math.round(f.score * 100)}%;background:${f.matched ? 'var(--success)' : 'var(--danger)'}"></div>
+                                    </div>
+                                    <span style="font-family:var(--mono);font-size:12px">${f.score.toFixed(3)}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge ${f.matched ? 'badge-match' : 'badge-unknown'}">
+                                    ${f.matched ? '✓ Matched' : '? Unknown'}
+                                </span>
+                            </td>
+                        </tr>
+                    `).join('')}
+                  </tbody>
+                </table>
+            `;
+
+            if (d.annotated_path) {
+                const card = document.getElementById('recognize-annotated-card');
+                const img = document.getElementById('recognize-annotated-img');
+                // The filename is now returned directly from the API
+                img.src = `http://localhost:8000/output/${d.annotated_path}`;
+                card.style.display = 'block';
+            }
+        }
+
 
         // ===================== SEARCH =====================
         async function loadSearchIdentities() {
@@ -1215,6 +1269,7 @@
         }
 
         // ===================== INIT =====================
+        restorePage();
         checkHealth();
         setInterval(checkHealth, 30000);
     </script>

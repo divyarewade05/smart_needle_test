@@ -35,7 +35,7 @@ def _hash_folder(folder_path: str) -> str:
         stat = entry.stat()
         hasher.update(entry.name.encode())
         hasher.update(str(stat.st_size).encode())
-        hasher.update(str(stat.st_mtime).encode())
+        hasher.update(str(int(stat.st_mtime)).encode()) # int() for robust hash
 
     return hasher.hexdigest()
 

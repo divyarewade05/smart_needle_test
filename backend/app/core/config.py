@@ -96,12 +96,15 @@ from app.ml.recognition_service import RecognitionService
 from app.ml.search_service import SearchService
 
 # ── Absolute paths ──────────────────────────────────────────────────
-_BACKEND = r"C:\Users\walnut\Desktop\smart_needle_working\backend"
+# We move 'data' outside of the 'backend' folder to prevent Uvicorn --reload from restarting 
+# every time a result image is saved.
+_ROOT = r"C:\Users\Administrator\Desktop\Smart-Needle"
+_STORAGE = os.path.join(_ROOT, "data_storage")
 
-REFERENCE_PATH      = os.path.join(_BACKEND, "app", "data", "reference")
-TEST_IMAGES_PATH    = os.path.join(_BACKEND, "app", "data", "test")
-OUTPUT_PATH         = os.path.join(_BACKEND, "app", "data", "output")
-EMBEDDINGS_PATH     = os.path.join(_BACKEND, "embeddings.pkl")
+REFERENCE_PATH      = os.path.join(_STORAGE, "reference")
+TEST_IMAGES_PATH    = os.path.join(_STORAGE, "test")
+OUTPUT_PATH         = os.path.join(_STORAGE, "output")
+EMBEDDINGS_PATH     = os.path.join(_STORAGE, "embeddings.pkl")
 
 INSIGHTFACE_MODEL   = "buffalo_l"
 CTX_ID              = -1
@@ -124,9 +127,9 @@ class Settings:
 
 def get_settings():
     s = Settings()
-    print(f"📁 Reference:  {s.reference_path}")
-    print(f"📁 Test images: {s.test_images_path}")
-    print(f"📁 Output:     {s.output_path}")
+    print(f"Reference:  {s.reference_path}")
+    print(f"Test images: {s.test_images_path}")
+    print(f"Output:     {s.output_path}")
     return s
 
 

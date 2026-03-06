@@ -35,14 +35,17 @@ env/
 *.h5
 *.pt
 *.pth
+*.onnx
 
-# Data folders (ignore generated output only)
-# backend/data/output/
+# Data folders (ignore all student data and generated results)
+data_storage/
+backend/data_storage/
 
 # ------------------------------
 # Cache
 # ------------------------------
 .cache/
+.pytest_cache/
 
 # ------------------------------
 # Testing / Coverage

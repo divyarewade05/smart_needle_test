@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reward Hub | Smart Needle OS</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg: #05060f;
+            --surface: #0d111d;
+            --surface-glass: rgba(13, 17, 29, 0.7);
+            --border: rgba(255, 255, 255, 0.08);
+            --accent: #00f2ff;
+            --accent-glow: rgba(0, 242, 255, 0.2);
+            --success: #00ff9d;
+            --success-glow: rgba(0, 255, 157, 0.2);
+            --danger: #ff2b5e;
+            --warning: #ffb400;
+            --text: #ffffff;
+            --text-muted: #9499ad;
+            --font-main: 'Outfit', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-image:
+                radial-gradient(circle at 15% 15%, rgba(0, 242, 255, 0.04) 0%, transparent 40%),
+                radial-gradient(circle at 85% 85%, rgba(0, 255, 157, 0.04) 0%, transparent 40%),
+                url("https://www.transparenttextures.com/patterns/carbon-fibre.png");
+        }
+
+        /* --- Global Navbar --- */
+        .navbar {
+            padding: 24px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(5, 6, 15, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo-cluster {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: -1px;
+            background: linear-gradient(135deg, #fff 30%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 28px;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 500;
+            transition: 0.3s;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            color: var(--accent);
+            text-shadow: 0 0 10px var(--accent-glow);
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 60px 40px;
+        }
+
+        .header-box {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .header-box h1 {
+            font-size: 42px;
+            font-weight: 800;
+            letter-spacing: -1.5px;
+            margin-bottom: 12px;
+        }
+
+        .header-box p {
+            color: var(--text-muted);
+            font-size: 18px;
+        }
+
+        .reward-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .r-card {
+            background: var(--surface-glass);
+            border: 1px solid var(--border);
+            border-radius: 32px;
+            padding: 40px;
+            text-align: center;
+            backdrop-filter: blur(20px);
+            transition: 0.3s;
+        }
+
+        .r-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent-glow);
+        }
+
+        .circle-stat {
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            border: 8px solid var(--border);
+            border-top-color: var(--accent);
+            margin: 0 auto 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-mono);
+            font-weight: 800;
+            font-size: 32px;
+            color: var(--accent);
+            box-shadow: inset 0 0 20px rgba(0, 242, 255, 0.05);
+        }
+
+        .circle-stat .label {
+            font-size: 10px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            letter-spacing: 2px;
+        }
+
+        .points-box {
+            font-size: 56px;
+            font-weight: 800;
+            font-family: var(--font-mono);
+            color: var(--success);
+            margin: 10px 0;
+            text-shadow: 0 0 30px var(--success-glow);
+        }
+
+        .points-lbl {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: var(--text-muted);
+        }
+
+        .action-tray {
+            margin-top: 50px;
+            background: rgba(0, 242, 255, 0.03);
+            border: 1px dashed var(--accent);
+            border-radius: 28px;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .action-tray h3 {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .action-tray p {
+            color: var(--text-muted);
+            margin-bottom: 24px;
+            font-size: 14px;
+        }
+
+        .btn-action {
+            background: var(--success);
+            color: #000;
+            padding: 16px 40px;
+            border-radius: 14px;
+            font-weight: 800;
+            border: none;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 16px;
+        }
+
+        .btn-action:hover {
+            transform: scale(1.05);
+            filter: brightness(1.1);
+            box-shadow: 0 0 20px var(--success-glow);
+        }
+
+        .btn-action:disabled {
+            background: var(--border);
+            color: var(--text-muted);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        #sync-log {
+            margin-top: 20px;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--success);
+            opacity: 0.8;
+            height: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="logo-cluster">
+            <div class="logo">SMART NEEDLE // REWARDS</div>
+        </div>
+        <div class="nav-links">
+            <a href="/" class="nav-link">Dashboard</a>
+            <a href="/teacher" class="nav-link">Active Learning</a>
+            <a href="/rewards" class="nav-link active">Reward Hub</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <header class="header-box">
+            <h1>System Intelligence Hub</h1>
+            <p>Monetizing human feedback into machine intelligence.</p>
+        </header>
+
+        <main class="reward-grid">
+            <div class="r-card">
+                <div class="circle-stat" id="learning-circle">
+                    <span id="p-rate">0%</span>
+                    <span class="label">Accuracy Gain</span>
+                </div>
+                <h2>Learning Contribution</h2>
+                <p style="color: var(--text-muted); font-size: 14px; margin-top: 10px;">Total verified identities
+                    processed by your portal.</p>
+            </div>
+
+            <div class="r-card">
+                <div class="points-box" id="p-points">0</div>
+                <div class="points-lbl">Reward Credits Earnt</div>
+                <h2 style="margin-top: 24px;">Community Rewards</h2>
+                <p style="color: var(--text-muted); font-size: 14px; margin-top: 10px;">Credits earned for high-fidelity
+                    facial verification.</p>
+            </div>
+        </main>
+
+        <section class="action-tray">
+            <h3>Neural Intelligence Audit</h3>
+            <p>Verify exactly when a student's mathematical profile was last refined.</p>
+            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <input type="text" id="audit-name" placeholder="Enter Student Name (e.g. Kartik Singh)"
+                    style="flex: 1; padding: 12px; border-radius: 8px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white;">
+                <button class="btn-action" style="width: auto; padding: 0 20px;" onclick="auditIdentity()">Audit
+                    Brain</button>
+            </div>
+            <div id="audit-result"
+                style="font-size: 14px; color: var(--text-muted); padding: 10px; border-radius: 8px; background: rgba(0,0,0,0.2); min-height: 40px; display: flex; align-items: center; justify-content: center;">
+                Awaiting input...
+            </div>
+        </section>
+
+        <section class="action-tray">
+            <h3>Hard Sync Neural Core</h3>
+            <p>Manual intelligence synchronization ensures all new feedback is fully optimized into the search engine.
+            </p>
+
+            <div style="margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                <input type="checkbox" id="sync-force" style="width: 18px; height: 18px; cursor: pointer;">
+                <label for="sync-force" style="font-size: 14px; color: var(--text-muted); cursor: pointer;">
+                    Force Deep Re-Training (Re-scan all photos)
+                </label>
+            </div>
+
+            <button class="btn-action" id="btn-sync" onclick="triggerSync()">Initialize Neural Sync</button>
+            <div id="sync-log" style="white-space: pre-line; margin-top: 15px;"></div>
+        </section>
+    </div>
+
+    <script>
+        const getBase = () => {
+            const loc = window.location;
+            const isLocal = loc.hostname === 'localhost' || loc.hostname === '127.0.0.1';
+            return isLocal ? `http://127.0.0.1:8000` : `${loc.protocol}//${loc.hostname}:8000`;
+        };
+        const API = `${getBase()}/api`;
+
+        function loadStats() {
+            try {
+                const saved = localStorage.getItem('teacher_persistent_stats_v1');
+                const stats = saved ? JSON.parse(saved) : { verified: 0, rewards: 0 };
+
+                document.getElementById('p-points').innerText = stats.rewards.toLocaleString();
+                const rate = Math.min(100, Math.round((stats.verified / 250) * 100));
+                document.getElementById('p-rate').innerText = rate + '%';
+
+                if (rate > 50) document.getElementById('learning-circle').style.borderTopColor = 'var(--success)';
+            } catch (e) {
+                console.error("LocalStats Sync Error", e);
+            }
+        }
+
+        async function auditIdentity() {
+            const name = document.getElementById('audit-name').value.trim();
+            const log = document.getElementById('audit-result');
+            if (!name) return log.innerText = "Please enter a name.";
+
+            log.innerText = `Searching for ${name}...`;
+            try {
+                const res = await fetch(`${API}/embeddings/${encodeURIComponent(name)}`);
+                if (!res.ok) throw new Error("Identity not found in core brain.");
+
+                const data = await res.json();
+                const date = new Date(data.updated_at * 1000);
+                const timeStr = date.toLocaleString();
+
+                log.innerHTML = `<div style="color: var(--success); text-align: left; width: 100%;">
+                    <strong>✔ Identity Active</strong><br>
+                    <span style="color: white;">Refined:</span> ${timeStr}<br>
+                    <span style="color: white;">Photos in Brain:</span> ${data.sample_count}
+                </div>`;
+            } catch (err) {
+                log.innerText = `❌ ${err.message}`;
+            }
+        }
+
+        async function triggerSync() {
+            const btn = document.getElementById('btn-sync');
+            const log = document.getElementById('sync-log');
+            const force = document.getElementById('sync-force').checked;
+
+            btn.disabled = true;
+            btn.innerText = force ? "DEEP RE-TRAINING..." : "SYNCHRONIZING EMBEDDINGS...";
+            log.innerText = "Connecting to neural core...";
+
+            try {
+                const response = await fetch(`${API}/embeddings/rebuild?force=${force}`, { method: 'POST' });
+
+                if (!response.ok) throw new Error("Backend connection lost mid-sync.");
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = "";
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split("\n");
+                    buffer = lines.pop();
+
+                    for (const line of lines) {
+                        if (!line.trim()) continue;
+                        const event = JSON.parse(line);
+                        handleEvent(event, log, force);
+                    }
+                }
+
+                btn.innerText = "SYNC SUCCESSFUL";
+                btn.style.background = "rgba(0, 255, 157, 0.1)";
+                btn.style.color = "var(--success)";
+                btn.style.border = "1px solid var(--success)";
+
+                setTimeout(() => {
+                    btn.disabled = false;
+                    btn.innerText = "Initialize Neural Sync";
+                    btn.style = "";
+                }, 4000);
+
+            } catch (err) {
+                log.innerText = `⚠️ CRITICAL ERROR: ${err.message}\nServer might have ran out of memory. Please restart backend.`;
+                btn.disabled = false;
+                btn.innerText = "Retry Core Rebuild";
+            }
+        }
+
+        function handleEvent(evt, log, force) {
+            const type = evt.event;
+            const data = evt.data;
+
+            if (type === 'scan_complete') {
+                window._sync_total = data.to_process;
+                window._sync_p = 0;
+                log.innerText = `Scan Complete: ${data.to_process} folders need update.\n${data.clean} folders are already clean.`;
+            } else if (type === 'identity_done') {
+                window._sync_p++;
+                // Show every update if small batch, or every 5th for large batches
+                if (window._sync_total < 20 || window._sync_p % 5 === 0 || force) {
+                    log.innerText = `Retraining Brain: [${window._sync_p}/${window._sync_target || window._sync_total}]\nActive: ${data.name} (${data.count} photos analyzed)`;
+                }
+            } else if (type === 'build_complete') {
+                if (!force && data.processed === 0) {
+                    log.innerText = `READY: AI Brain is already fully up-to-date.\nChecked ${data.skipped} identities.`;
+                } else {
+                    log.innerText = `SYNC SUCCESS: Refined ${data.processed} identities.\nTotal Intelligence Database: ${data.total} students.`;
+                }
+            }
+        }
+
+        // Initialize
+        loadStats();
+    </script>
+</body>
+
+</html>

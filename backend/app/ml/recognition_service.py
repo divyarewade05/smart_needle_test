@@ -62,13 +62,13 @@ class RecognitionService:
 
         best_name, best_score = ranked[0]
 
-        if best_score < self.threshold:
-            return self._unknown(best_score, top_k_results)
-
+        # "it should return matches from stored embeddings only"
+        # We NO LONGER return "Unknown" here. We always return the best candidate
+        # but mark 'matched' as False if it's below threshold for UI warning.
         return {
             "name": best_name,
             "score": best_score,
-            "matched": True,
+            "matched": (best_score >= self.threshold),
             "top_k": top_k_results,
         }
 
